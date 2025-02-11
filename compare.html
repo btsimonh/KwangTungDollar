@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html>
+  <header>
+    <style>
+      h1 {
+        text-align:center;
+      }
+      p {
+        font-size: 150%;
+      }
+      * {box-sizing: border-box;}
+
+      .img-comp-container {
+        display:inline-block;
+        position: relative;
+        height: 85vh; /*should be the same height as the images*/
+        width: 85vh; /*should be the same height as the images*/
+      }
+      .controls-container {
+        display:contents;
+      }
+      
+      .keyinput-container {
+      }
+      .url-container {
+      }
+
+      .sliders-container {
+        display:inline-block;
+        position: relative;
+        height: 65vh; /*should be the same height as the images*/
+        width: 15vh; /*should be the same height as the images*/
+        writing-mode: vertical-lr;
+        vertical-align: top;
+      }
+      
+      .img-comp-img {
+        position: absolute;
+        width: 85vh;
+        height: 85vh;
+        overflow: hidden;
+      }
+
+      .img-comp-img img {
+        display: block;
+        /*vertical-align: middle;*/
+      }
+
+      .img-comp-slider {
+        position: absolute;
+        z-index: 9;
+        cursor: ew-resize;
+        /*set the appearance of the slider:*/
+        width: 40px;
+        height: 40px;
+        background-color: #2196F3;
+        opacity: 0.7;
+        border-radius: 50%;
+      }      
+
+      .slidecontainer {
+        width: 85vh; /* Width of the outside container */
+      }
+
+      /* The slider itself */
+      .slider {
+        -webkit-appearance: none;  /* Override default CSS styles */
+        appearance: none;
+        width: 5px; /* Full-width */
+        height: 55vh; /* Specified height */
+        background: #d3d3d3; /* Grey background */
+        outline: none; /* Remove outline */
+        opacity: 0.7; /* Set transparency (for mouse-over effects on hover) */
+        -webkit-transition: .2s; /* 0.2 seconds transition on hover */
+        transition: opacity .2s;
+        appearance: slider-vertical;
+        direction: rtl;
+      }
+      .slider-label {
+        height:5vh;
+        display: inline-block;
+      }
+
+      /* Mouse-over effects */
+      .slider:hover {
+        opacity: 1; /* Fully shown on mouse-over */
+      }
+      .slider:focus {
+        opacity: 1; /* Fully shown on mouse-over */
+        outline-style:auto
+      }
+
+      
+      /* The slider handle (use -webkit- (Chrome, Opera, Safari, Edge) and -moz- (Firefox) to override default look) */
+      .slider::-webkit-slider-thumb {
+        -webkit-appearance: none; /* Override default look */
+        appearance: none;
+        width: 25px; /* Set a specific slider handle width */
+        height: 5px; /* Slider handle height */
+        background: #04AA6D; /* Green background */
+        cursor: pointer; /* Cursor on hover */
+      }
+
+      .slider:focus::-webkit-slider-thumb {
+        background: #200000; /* red background */
+      }
+
+      
+      .slider::-moz-range-thumb {
+        width: 25px; /* Set a specific slider handle width */
+        height: 5px; /* Slider handle height */
+        background: #04AA6D; /* Green background */
+        cursor: pointer; /* Cursor on hover */
+      }
+      
+      .keycapture {
+        display:inline-block;
+        width: 45vh;
+        height: auto;
+        background: #d3d3d3; /* Grey background */
+        outline: dotted;
+      }
+      .keycapture:focus {
+        outline: auto;
+      }
+      
+      .urlinput {
+        width: 45vh;
+      }
+      
+      .mask {
+        mask: repeating-conic-gradient(#808080 0% 25%, transparent 0% 50%) 10% 10% / 10% 10%;
+      }
+      .masksquare1 {
+        mask: repeating-conic-gradient(#808080 0% 25%, transparent 0% 50%) 0% 0% / 10% 10%;
+      }
+      .masksquare2 {
+        mask: repeating-conic-gradient(#808080 0% 25%, transparent 0% 50%) 5% 5% / 10% 10%;
+      }
+      .masksquare3 {
+        mask: repeating-conic-gradient(#808080 0% 25%, transparent 0% 50%) 10% 10% / 10% 10%;
+      }
+      .masksquare4 {
+        mask: repeating-conic-gradient(#808080 0% 25%, transparent 0% 50%) 15% 15% / 10% 10%;
+      }
+      
+      
+      
+    </style>
+    
+    <script>
+      function initComparisons() {
+        var x, i;
+        /* Find all elements with an "overlay" class: */
+        x = document.getElementsByClassName("img-comp-overlay");
+        for (i = 0; i < x.length; i++) {
+          /* Once for each "overlay" element:
+          pass the "overlay" element as a parameter when executing the compareImages function: */
+          compareImages(x[i]);
+        }
+        function compareImages(img) {
+          var slider, img, clicked = 0, w, h;
+          /* Get the width and height of the img element */
+          w = img.offsetWidth;
+          h = img.offsetHeight;
+          /* Set the width of the img element to 50%: */
+          img.style.width = (w / 2) + "px";
+          /* Create slider: */
+          slider = document.createElement("DIV");
+          slider.setAttribute("class", "img-comp-slider");
+          slider.setAttribute("id", "img-comp-slider");
+          /* Insert slider */
+          img.parentElement.insertBefore(slider, img);
+          /* Position the slider in the middle: */
+          slider.style.top = (h / 2) - (slider.offsetHeight / 2) + "px";
+          slider.style.left = (w / 2) - (slider.offsetWidth / 2) + "px";
+          /* Execute a function when the mouse button is pressed: */
+          slider.addEventListener("mousedown", slideReady);
+          /* And another function when the mouse button is released: */
+          window.addEventListener("mouseup", slideFinish);
+          /* Or touched (for touch screens: */
+          slider.addEventListener("touchstart", slideReady);
+           /* And released (for touch screens: */
+          window.addEventListener("touchend", slideFinish);
+          function slideReady(e) {
+            /* Prevent any other actions that may occur when moving over the image: */
+            e.preventDefault();
+            /* The slider is now clicked and ready to move: */
+            clicked = 1;
+            /* Execute a function when the slider is moved: */
+            window.addEventListener("mousemove", slideMove);
+            window.addEventListener("touchmove", slideMove);
+          }
+          function slideFinish() {
+            /* The slider is no longer clicked: */
+            clicked = 0;
+          }
+          function slideMove(e) {
+            var pos;
+            /* If the slider is no longer clicked, exit this function: */
+            if (clicked == 0) return false;
+            /* Get the cursor's x position: */
+            pos = getCursorPos(e)
+            /* Prevent the slider from being positioned outside the image: */
+            if (pos < 0) pos = 0;
+            if (pos > w) pos = w;
+            /* Execute a function that will resize the overlay image according to the cursor: */
+            slide(pos);
+          }
+          function getCursorPos(e) {
+            var a, x = 0;
+            e = (e.changedTouches) ? e.changedTouches[0] : e;
+            /* Get the x positions of the image: */
+            a = img.getBoundingClientRect();
+            /* Calculate the cursor's x coordinate, relative to the image: */
+            x = e.pageX - a.left;
+            /* Consider any page scrolling: */
+            x = x - window.pageXOffset;
+            return x;
+          }
+          function slide(x) {
+            /* Resize the image: */
+            img.style.width = x + "px";
+            /* Position the slider: */
+            slider.style.left = img.offsetWidth - (slider.offsetWidth / 2) + "px";
+            let im = document.getElementById('compared');
+            im._params.slide = x;
+          }
+        }
+        
+        let el = initparams('compared', selected);
+        initsliders(el);
+        settransform(el);
+      }
+
+      function initsliders(el){
+        let keys = Object.keys(el._params);
+        for (let i = 0; i < keys.length; i++){
+          let n = keys[i];
+          let sl = document.getElementById(n);
+          if (sl){
+            sl.value = el._params[n];
+          }
+        }
+        
+        let sl = document.getElementById('orglink');
+        sl.href = el._params['orglink'];
+        sl.innerHTML = el._params['name'];
+      }
+
+      let increments = {
+        x:0.01,
+        y:0.01,
+        scalex:0.001,
+        scaley:0.001,
+        deg:0.01,
+        slide:1,
+      }
+      
+      let selected = 0;
+      
+      function keydown(ev){
+      ev = ev || window.event
+        console.log(ev);
+        if (ev){
+          ev.stopPropagation();
+          ev.preventDefault();
+          let el = initparams('compared', selected);
+          
+          let keys = Object.keys(el._params);
+          for (let i = 0; i < keys.length; i++){
+            let n = keys[i];
+            if (el._params[n] == +el._params[n]){
+              el._params[n] = +el._params[n];
+            }
+          }
+          
+          switch(ev.key){
+            case 'ArrowRight':
+              if (ev.altKey){
+                el._params.slide = (el._params.slide || 0) + increments.slide;
+              } else
+              if (ev.ctrlKey){
+                el._params.deg += increments.deg;
+              } else
+              if (ev.shiftKey){
+                el._params.scalex += increments.scalex;
+              } else {
+                el._params.x += increments.x;
+              }
+              break;
+            case 'ArrowLeft':
+              if (ev.altKey){
+                el._params.slide = (el._params.slide || 0) - increments.slide;
+              } else
+              if (ev.ctrlKey){
+                el._params.deg -= increments.deg;
+              } else
+              if (ev.shiftKey){
+                el._params.scalex -= increments.scalex;
+              } else {
+                el._params.x -= increments.x;
+              }
+              break;
+            case 'ArrowUp':
+              if (ev.shiftKey){
+                el._params.scaley -= increments.scaley;
+              } else {
+                el._params.y -= increments.y;
+              }
+              break;
+            case 'ArrowDown':
+              if (ev.shiftKey){
+                el._params.scaley += increments.scaley;
+              } else {
+                el._params.y += increments.y;
+              }
+              break;
+            case 'PageUp':
+              el._params.deg--;
+              break;
+            case 'PageDown':
+              el._params.deg++;
+              break;
+          }
+          settransform(el);
+        }
+      }
+      
+      function settransform(el){
+        let trans = `translate(${el._params.x}%, ${el._params.y}%) rotate(${el._params.deg}deg) scale(${el._params.scalex}, ${el._params.scaley})`;
+        el.style.transform = trans;
+        let transorg = `${50-el._params.x}% ${50-el._params.y}%`;
+        el.style.transformOrigin = transorg;
+        el.style.opacity = el._params.opacity;
+        let v = document.getElementById('values');
+        v.innerHTML = JSON.stringify(el._params, null, '  ');
+        
+        let slider = document.getElementById("img-comp-slider");
+        let overlay = document.getElementById("img-comp-overlay");
+        /* Resize the image: */
+        overlay.style.width = (el._params.slide || overlay.offsetWidth/2) + "px";
+        /* Position the slider: */
+        slider.style.left = overlay.offsetWidth - (slider.offsetWidth / 2) + "px";
+      }
+
+      function rotate(deg){
+        let el = initparams('compared', selected);
+        el._params.deg = deg;
+        settransform(el);
+      }
+      
+      function movex(x){
+        let el = initparams('compared', selected);
+        el._params.x = x;
+        settransform(el);
+      }
+      function movey(y){
+        let el = initparams('compared', selected);
+        el._params.y = y;
+        settransform(el);
+      }
+      
+      function scalex(s){
+        let el = initparams('compared', selected);
+        el._params.scalex = s;
+        settransform(el);
+      }
+      function scaley(s){
+        let el = initparams('compared', selected);
+        el._params.scaley = s;
+        settransform(el);
+      }
+      
+      function opacity(s){
+        let el = initparams('compared', selected);
+        el._params.opacity = s;
+        settransform(el);
+      }
+      
+      function focusme(el){
+        el.focus();
+      }
+      
+      
+      function initparams(id, val){
+        let el = document.getElementById(id);
+        el._params = compares[val || 0] || el._params;
+        let keys = Object.keys(el._params);
+        for (let i = 0; i < keys.length; i++){
+          let n = keys[i];
+          if (el._params[n] == +el._params[n]){
+            el._params[n] = +el._params[n];
+          }
+        }
+        
+        el.src = el._params.url;
+        let cp = document.getElementById('compare');
+        cp.src = el._params.local;
+        return el
+      }
+      
+      function selectcoin(el){
+        let im = initparams('compared', el.value);
+        selected = el.value;
+        initsliders(im);
+        settransform(im);
+      }
+
+      let masks = [
+        'nomask',
+        'masksquare1',
+        'masksquare2',
+        'masksquare3',
+        'masksquare4'
+      ];
+      
+      function selectmask(el){
+        let im = document.getElementById('compared');
+        im.classList = masks[el.value];
+      }
+
+      function change1(el){
+        let im = document.getElementById('compared');
+        im._params.local = el.value;
+        initparams('compared', -1);
+        initsliders(im);
+        settransform(im);
+      }
+      function change2(el){
+        let im = document.getElementById('compared');
+        im._params.url = el.value;
+        initparams('compared', -1);
+        initsliders(im);
+        settransform(im);
+      }
+
+      
+      let compares = [
+{
+  "local": "./frontnatural-crop.JPG",
+  "url": "https://d1htnxwo4o0jhw.cloudfront.net/pcgs/cert/82109798/large/215550031.jpg",
+  "orglink":"https://www.pcgs.com/cert/82109798",
+  "name":"PCGS Cert number 82109798 LM133B-2",
+  "deg": 0.73,
+  "opacity": "0.8",
+  "scalex": 0.824,
+  "scaley": 0.826,
+  "x": -11.379999999999953,
+  "y": -11.569999999999958
+}
+        ,
+{
+  "local": "./frontnatural-crop.JPG",
+  "url": "https://d1htnxwo4o0jhw.cloudfront.net/pcgs/cert/44328297/large/232072984.jpg",
+  "orglink":"https://www.pcgs.com/cert/44328297",
+  "name":"PCGS Cert number 44328297 LM133B-1",
+  "deg": 1.6,
+  "opacity": "1",
+  "scalex": "0.808",
+  "scaley": 0.811,
+  "x": -11.689999999999944,
+  "y": -11.179999999999962
+}
+        ,
+{
+  "local": "./frontnatural-crop.JPG",
+  "url": "https://d1htnxwo4o0jhw.cloudfront.net/cert/78595519/large/45089927.jpg",
+  "orglink":"https://www.pcgs.com/cert/78595519",
+  "name":"PCGS Cert number 78595519 LM133B-1",
+  "deg": "0.2",
+  "opacity": "1",
+  "scalex": "1.579",
+  "scaley": "1.578",
+  "x": "19.57",
+  "y": 20.2799999999999
+}
+,
+{
+  "local": "./frontnatural-crop.JPG",
+  "url": "https://d3847yva1jxxa4.cloudfront.net/auctions/-221975054890152023/-2972885806941540095/images/1.jpg",
+  "orglink":"https://www.pcgs.com/auctionprices/item/1890-08-1-lm-133c-heaton-nc/173382/-2972885806941540095",
+  "name":"NGC 4622375-003 LM133B-2",
+  "deg": "-1.95",
+  "opacity": "1",
+  "scalex": "0.781",
+  "scaley": "0.781",
+  "x": -11.079999999999954,
+  "y": -12.659999999999938
+}
+,
+{
+  "local": "./frontnatural-crop.JPG",
+  "url": "https://d3847yva1jxxa4.cloudfront.net/auctions/-3996499773024350930/-2307971700726984728/images/1.jpg",
+  "orglink":"https://www.pcgs.com/auctionprices/item/1890-08-1-lm-133b-dot-fb-nc/511374/-2307971700726984728",
+  "name":"PCGS 80060042 LM133B-3",
+  "deg": 3.0400000000000107,
+  "opacity": 1,
+  "scalex": 0.788,
+  "scaley": 0.795,
+  "x": -12.169999999999932,
+  "y": -11.50999999999996,
+  "slide": 691.25
+}
+,
+{
+  "local": "https://d1htnxwo4o0jhw.cloudfront.net/pcgs/cert/82109798/large/215550031.jpg",
+  "url": "https://d3847yva1jxxa4.cloudfront.net/auctions/-3996499773024350930/-2307971700726984728/images/1.jpg",
+  "deg": "2.35",
+  "opacity": "0.7",
+  "scalex": "0.952",
+  "scaley": "0.961",
+  "x": "0.34",
+  "y": "-0.22"
+},
+{
+  "local": "./backnatural-crop.JPG",
+  "url": "https://d3847yva1jxxa4.cloudfront.net/auctions/-3996499773024350930/-2307971700726984728/images/2.jpg",
+  "orglink":"https://www.pcgs.com/auctionprices/item/1890-08-1-lm-133b-dot-fb-nc/511374/-2307971700726984728",
+  "name":"PCGS 80060042 LM133B-3 Back",
+  "deg": "-3.65",
+  "opacity": "1",
+  "scalex": 0.869,
+  "scaley": "0.868",
+  "x": -5.219999999999998,
+  "y": -7.499999999999973
+}
+,
+{
+  "local": "./backnatural-crop.JPG",
+  "url": "https://d1htnxwo4o0jhw.cloudfront.net/pcgs/cert/46721336/large/256208112.jpg",
+  "orglink":"https://www.pcgs.com/auctionprices/item/1890-08-1-lm-133b-dot-fb-nc/511374/4310330974828237167",
+  "name":"PCGS 46721336 LM133B-3 Back",
+  "deg": -4.649999999999974,
+  "opacity": "0.9",
+  "scalex": "1.828",
+  "scaley": "1.825",
+  "x": -28.18000000000012,
+  "y": 21.499999999999893
+}
+,
+{
+  "local": "./frontnatural-crop.JPG",
+  "url": "https://i.ebayimg.com/images/g/OMAAAOSwHMxmXlTQ/s-l1600.webp",
+  "orglink":"",
+  "name":"Ebay Front",
+  "deg": -3.5499999999999425,
+  "opacity": "1",
+  "scalex": 0.8559999999999999,
+  "scaley": 0.938,
+  "x": -10.449999999999969,
+  "y": -6.0300000000000775
+}
+,
+{
+  "local": "./backnatural-crop.JPG",
+  "url": "https://i.ebayimg.com/images/g/6XAAAOSw9a9mXlTc/s-l1600.webp",
+  "orglink":"",
+  "name":"Ebay Back",
+  "deg": 0.9000000000000266,
+  "opacity": 1,
+  "scalex": 0.9370000000000002,
+  "scaley": 1.0399999999999958,
+  "x": -6.930000000000044,
+  "y": -2.9700000000001427
+}
+
+,
+{
+  "local": "./frontnatural-crop.JPG",
+  "url": "https://i.ebayimg.com/images/g/8wYAAOSwBh1mS6Ic/s-l1600.webp",
+  "orglink":"",
+  "name":"Ebay2 Front",
+  "deg": 0.3300000000000261,
+  "opacity": 1,
+  "scalex": 0.9040000000000001,
+  "scaley": 0.901,
+  "x": -10.619999999999965,
+  "y": -9.269999999999982
+}
+,
+{
+  "local": "./backnatural-crop.JPG",
+  "url": "https://i.ebayimg.com/images/g/kGoAAOSwQ-JmS6Ic/s-l1600.webp",
+  "orglink":"",
+  "name":"Ebay2 Back",
+  "deg": 3.4999999999999956,
+  "opacity": 1,
+  "scalex": 0.9840000000000002,
+  "scaley": 0.9920000000000002,
+  "x": -6.3000000000000576,
+  "y": -5.410000000000091
+}
+,
+{
+  "orglink": "https://www.coinarchives.com/w/lotviewer.php?LotID=7481258&AucID=8806&Lot=4089&Val=1dab86681a4847ab96b2d6c8f8591baa",
+  "name": "Front: LM133B Spink > Auction CSS112E\tAuction date: 13 January 2025 Lot number: 4089",
+  "local": "./frontnatural-crop.JPG",
+  "url": "https://www.coinarchives.com/c215b7f7d6245771e9427820e2828654/img/spink/css112e/image04089.jpg",
+  "deg": 2.7600000000000113,
+  "opacity": 1,
+  "scalex": 1.6129999999999884,
+  "scaley": 1.6019999999999903,
+  "x": 20.27000000000011,
+  "y": 20.169999999999785
+}
+,
+{
+  "orglink": "https://www.coinarchives.com/w/lotviewer.php?LotID=7481258&AucID=8806&Lot=4089&Val=1dab86681a4847ab96b2d6c8f8591baa",
+  "name": "Back: LM133B Spink > Auction CSS112E\tAuction date: 13 January 2025 Lot number: 4089",
+  "local": "./backnatural-crop.JPG",
+  "url": "https://www.coinarchives.com/c215b7f7d6245771e9427820e2828654/img/spink/css112e/image04089.jpg",
+  "deg": -7.869999999999852,
+  "opacity": 1,
+  "scalex": 1.7659999999999716,
+  "scaley": 1.7629999999999726,
+  "x": -29.180000000000103,
+  "y": 21.19999999999973
+}
+       
+
+       
+       
+
+       
+      ];
+      
+      
+      
+    </script>
+    
+  </header>
+  <body>
+<div>
+  <div>
+    <label for="select">Image:</label>
+    <select name="select" id="select" onchange="selectcoin(this)">
+      <option value="0">0 - LM133B-2 PCGS 82109798</option>
+      <option value="1">1 - LM133B-1 PCGS 44328297</option>
+      <option value="2">2 - LM133B-1 PCGS 78595519</option>
+      <option value="3">3 - LM133B-2 NGC 4622375-003</option>
+      <option value="4">4 - LM133B-3 PCGS 80060042</option>
+      <option value="5">5 - unknown</option>
+      <option value="6">6 - LM133B-3 PCGS 80060042 Back</option>
+      <option value="7">7 - LM133B-3 PCGS 46721336 Back</option>
+      <option value="8">8 - LM133B ebay Front</option>
+      <option value="9">9 - LM133B ebay Back</option>
+      <option value="10">10 - LM133A Front</option>
+      <option value="11">11 - LM133A Back</option>
+      <option value="12">12 - LM133B Spink Front</option>
+      <option value="13">13 - LM133B Spink Back</option>
+    </select>  
+    <a href="" id="orglink" target="_blank"></a><br/>
+    
+    <label for="mask">Mask:</label>
+    <select name="select" id="select" onchange="selectmask(this)">
+      <option value="0">none</option>
+      <option value="1">checker1</option>
+      <option value="2">checker2</option>
+      <option value="3">checker3</option>
+      <option value="4">checker4</option>
+      <option value="5">checker5</option>
+      <option value="6">checker6</option>
+      <option value="7">checker7</option>
+      <option value="8">checker8</option>
+    </select>  
+    <br/>
+  </div>
+  <div class="url-container">
+    <label for="local" >Image1:</label>
+    <input class="urlinput" type="text" id="local" tabindex="0" onChange="change1(this)">
+    <br/>
+    <label for="url" >Image2:</label>
+    <input class="urlinput" type="text" id="url" tabindex="0" onChange="change2(this)">
+  </div>
+  <div class="keyinput-container">
+    <div class="keycapture" tabindex:"0" contenteditable=true onKeyDown="keydown()" width="15vh" height="10vh">
+      Click here to use keys:<br/>
+      Up/Down/Left/Right - move the image.<br/>
+      Shift-Up/Down/Left/Right - scale the image<br/>
+      Crtl-Left/Right - Rotate the image<br/>
+      Alt-Left/Right - move the compare bar
+    </div>
+    <p>Drag the blue dot to compare the coins.  If you increase the size of the browser, please F5 refresh</p>
+    <!--<input type="text" id="keycapture" class="keycapture" tabindex="0" onKeyDown="keydown()" width="15vh" height="10vh">-->
+  </div>
+  
+  <div>
+    <div class="controls-container">
+      <div class="sliders-container">
+        <label for="deg" class="slider-label">Rotate:</label>
+        <input tabindex="0" type="range" min="-180" max="180" value="0" step="0.05" class="slider" id="deg" onclick="focusme(this)" onchange="rotate(this.value)" width="50%">
+        <br>
+        <label for="x" class="slider-label">X:</label>
+        <input tabindex="0" type="range" min="-100" max="100" value="0" step="0.01" class="slider" id="x" onclick="focusme(this)" onchange="movex(this.value)" width="75vh">
+        <br>
+        <label for="y" class="slider-label">Y:</label>
+        <input tabindex="0" type="range" min="-100" max="100" value="0" step="0.01" class="slider" id="y" onclick="focusme(this)" onchange="movey(this.value)" width="75vh">
+        <br>
+        <label for="scalex" class="slider-label">scalex:</label>
+        <input tabindex="0" type="range" min="0.5" max="2.5" value="1" step="0.001" class="slider" id="scalex" onclick="focusme(this)" onchange="scalex(this.value)" width="75vh">
+        <br>
+        <label for="scaley" class="slider-label">scaley:</label>
+        <input tabindex="0" type="range" min="0.5" max="2.5" value="1" step="0.001" class="slider" id="scaley" onclick="focusme(this)" onchange="scaley(this.value)" width="75vh">
+        <br>
+        <label for="opacity" class="slider-label">opacity:</label>
+        <input tabindex="0" type="range" min="0.1" max="1" value="0.8" step="0.05" class="slider" id="opacity" onclick="focusme(this)" onchange="opacity(this.value)" width="75vh">
+      </div>
+      
+    </div>
+    <div class="img-comp-container">
+      <div class="img-comp-img">
+        <img id="compare" src="./frontnatural-crop.JPG" width="100%">
+      </div>
+      <div class="img-comp-img img-comp-overlay" id="img-comp-overlay">
+        <div class="img-comp-img">
+          <img class="" id="compared" src="https://d1htnxwo4o0jhw.cloudfront.net/cert/78595519/large/45089927.jpg" width="100%">
+        </div>
+      </div>
+    </div>  
+  </div>
+    
+  <pre id="values"></pre>  
+  
+</div>
+
+    <script>
+      initComparisons();
+    </script>
+
+</body>
+</html>
